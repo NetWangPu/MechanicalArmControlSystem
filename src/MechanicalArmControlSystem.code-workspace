@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "MechanicalArmControlSystem",
+			"path": ".."
+		},
+		{
+			"name": "DeviceControlSystem",
+			"path": "../../DeviceControlSystem"
+		},
+		{
+			"name": "testserove",
+			"path": "../../testserove"
+		}
+	],
+	"settings": {}
+}
