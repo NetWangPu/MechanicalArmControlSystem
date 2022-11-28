@@ -19,7 +19,7 @@
 #define SAVE_KEY 13
 
 ///@todo 模式切换感觉没有必要使用中断
-//中断引脚模式切换和暂停/继续 
+//中断引脚模式切换和暂停/继续
 #define MODE_KEY 8
 #define PAUSE_KEY 9
 
@@ -64,7 +64,7 @@ void setup()
   //中断初始化
   pinMode(MODE_KEY, INPUT_PULLUP);
   pinMode(PAUSE_KEY, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(MODE_KEY), modeChange, FALLING);     //模式切换 按键中断 低电平触发 中断函数modeKey
+  attachInterrupt(digitalPinToInterrupt(MODE_KEY), modeChange, FALLING); //模式切换 按键中断 低电平触发 中断函数modeKey
   // attachInterrupt(digitalPinToInterrupt(PAUSE_KEY), pauseContinue, FALLING); //暂停/继续 按键中断 低电平触发 中断函数pauseKey
   //初始化icc通信 amega2560的icc通信引脚为 20 21 scl引脚为22 sda引脚为23
   Wire.begin();
@@ -127,6 +127,47 @@ void setup()
   lcd.print("WIFI CONNECTED");
   delay(2000);
 #endif
+}
+
+/// @brief 根据接收的序号和指定的舵机ID执行相应的动作
+/// @param pointNum  接收到的序号
+/// @return  1 为执行成功 0 为执行失败
+int doActionByPonintNum(int pointNum)
+{
+  //根据序号找到对应的动作 pintNum从1开始 0为无效动作
+  if (pointNum == 0)
+  {
+    return 0;
+  }
+  //在链表中找到第pointNum个动作
+  PatrolpointNode *p = patrolpointList;
+  for (int i = 1; i < pointNum; i++)
+  {
+    p = p->next;
+    //如果找到最后一个动作还没有找到 则返回0
+    if (p == NULL)
+    {
+      return 0;
+    }
+  }
+  //执行动作 串口1为舵机控制 串口2为机械臂控制
+  Serial2.print("M2A" + p->servo_A + 'B' + p->servo_B + 'E' + p->servo_E + 'F' + p->servo_F + 'G' + p->servo_G + 'H' + p->servo_H + 'X');
+  //舵机上锁
+  LobotSerialServoLoad(Serial1, SERVOA);
+  LobotSerialServoLoad(Serial1, SERVOB);
+  LobotSerialServoLoad(Serial1, SERVOE);
+  LobotSerialServoLoad(Serial1, SERVOF);
+  LobotSerialServoMove(Serial1, SERVOA, p->servo_A, 2000);
+  LobotSerialServoMove(Serial1, SERVOB, p->servo_B, 2000);
+  LobotSerialServoMove(Serial1, SERVOE, p->servo_E, 2000);
+  LobotSerialServoMove(Serial1, SERVOF, p->servo_F, 2000);
+  delay(2000);
+  //舵机解锁
+  LobotSerialServoUnload(Serial1, SERVOA);
+  LobotSerialServoUnload(Serial1, SERVOB);
+  LobotSerialServoUnload(Serial1, SERVOE);
+  LobotSerialServoUnload(Serial1, SERVOF);
+  return 1;
 }
 
 /***
