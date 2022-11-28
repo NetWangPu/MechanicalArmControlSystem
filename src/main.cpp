@@ -83,6 +83,9 @@ void setup()
   pinMode(AUTO_LED, OUTPUT);
   pinMode(TEACH_LED, OUTPUT);
 
+  //将EEPROM中的数据读取到巡查点链表中
+  ReadPatrolpointNodeFromEEPROM(patrolpointList);
+
   /************屏幕初始化*****************/
   lcd.init();      //初始化LCD
   lcd.backlight(); //打开背光
@@ -273,6 +276,8 @@ void TeachMode()
       delay(100);
       //将数据插入到链表中
       insertPatrolpointList(patrolpointList, ++patrolpointNum, servo_G_init, servo_A_init, servo_B_init, servo_H_init, servo_E_init, servo_F_init);
+      //将数据Map到EEPROM中
+      SavePatrolpointNodeToEEPROM(patrolpointList);
     }
   }
 }
