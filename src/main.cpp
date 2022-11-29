@@ -3,6 +3,8 @@
 #include <servo.h>
 #include <controller.h>
 #include <pointnode.h>
+#include <getChange.h>
+#include <TimerOne.h>
 
 //#define SYS_DEBUG 1  /*调试是用，控制舵机运动与读取按键值*/
 
@@ -66,7 +68,12 @@ void setup()
   pinMode(PAUSE_KEY, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(MODE_KEY), modeChange, FALLING); //模式切换 按键中断 低电平触发 中断函数modeKey
   // attachInterrupt(digitalPinToInterrupt(PAUSE_KEY), pauseContinue, FALLING); //暂停/继续 按键中断 低电平触发 中断函数pauseKey
-  //初始化icc通信 amega2560的icc通信引脚为 20 21 scl引脚为22 sda引脚为23
+  //定时中断调用函数 1min一次
+  timer1_isr_init(); //初始化定时器
+  timer1_attachInterrupt(pauseContinue); //定时中断调用函数
+  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_LOOP); //设置定时器 16分频  边沿触发 循环模式
+  timer1_write(31250000); //设置定时器的计数值 1min
+  //初始化icc通信
   Wire.begin();
   /************串口初始化*****************/
   Serial.begin(115200);  //初始化串口 用于电脑调试
@@ -130,6 +137,21 @@ void setup()
   lcd.print("WIFI CONNECTED");
   delay(2000);
 #endif
+}
+
+/**
+ * 屏幕显示在右上角 为了不发生冲突 把自动模式的字符提示缩短了
+*/
+/// @brief 获取电量并显示在lcd上
+void getPowerAndsetInLcd()
+{
+  //获取电量
+  int power = getPower();
+  //显示电量
+  lcd.setCursor(0, 11);
+  lcd.print("V");
+  lcd.print(power);
+  // delay(1000);
 }
 
 /// @brief 根据接收的序号和指定的舵机ID执行相应的动作
@@ -287,7 +309,7 @@ void AutoPatrolMode()
 {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("AutoPatrolMode");
+  lcd.print("AutoMode");
   digitalWrite(AUTO_LED, HIGH);
   digitalWrite(TEACH_LED, LOW);
   // 执行巡逻
