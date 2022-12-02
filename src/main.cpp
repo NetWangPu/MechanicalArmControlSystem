@@ -4,7 +4,6 @@
 #include <controller.h>
 #include <pointnode.h>
 #include <getChange.h>
-#include <TimerOne.h>
 
 //#define SYS_DEBUG 1  /*调试是用，控制舵机运动与读取按键值*/
 
@@ -68,11 +67,6 @@ void setup()
   pinMode(PAUSE_KEY, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(MODE_KEY), modeChange, FALLING); //模式切换 按键中断 低电平触发 中断函数modeKey
   // attachInterrupt(digitalPinToInterrupt(PAUSE_KEY), pauseContinue, FALLING); //暂停/继续 按键中断 低电平触发 中断函数pauseKey
-  //定时中断调用函数 1min一次
-  timer1_isr_init(); //初始化定时器
-  timer1_attachInterrupt(pauseContinue); //定时中断调用函数
-  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_LOOP); //设置定时器 16分频  边沿触发 循环模式
-  timer1_write(31250000); //设置定时器的计数值 1min
   //初始化icc通信
   Wire.begin();
   /************串口初始化*****************/
@@ -255,21 +249,53 @@ int checkOperator()
   if (LobotSerialServoReadPosition(Serial1, SERVOA) != servo_A_init)
   {
     servo_A_init = LobotSerialServoReadPosition(Serial1, SERVOA);
+    if(servo_A_init > servo_A_max)
+    {
+      servo_A_init = servo_A_max;
+    }
+    if(servo_A_init < servo_A_min)
+    {
+      servo_A_init = servo_A_min;
+    }
     operatorFlag = 1;
   }
   if (LobotSerialServoReadPosition(Serial1, SERVOB) != servo_B_init)
   {
     servo_B_init = LobotSerialServoReadPosition(Serial1, SERVOB);
+    if(servo_B_init > servo_B_max)
+    {
+      servo_B_init = servo_B_max;
+    }
+    if(servo_B_init < servo_B_min)
+    {
+      servo_B_init = servo_B_min;
+    }
     operatorFlag = 1;
   }
   if (LobotSerialServoReadPosition(Serial1, SERVOE) != servo_E_init)
   {
     servo_E_init = LobotSerialServoReadPosition(Serial1, SERVOE);
+    if(servo_E_init > servo_E_max)
+    {
+      servo_E_init = servo_E_max;
+    }
+    if(servo_E_init < servo_E_min)
+    {
+      servo_E_init = servo_E_min;
+    }
     operatorFlag = 1;
   }
   if (LobotSerialServoReadPosition(Serial1, SERVOF) != servo_F_init)
   {
     servo_F_init = LobotSerialServoReadPosition(Serial1, SERVOF);
+    if(servo_F_init > servo_F_max)
+    {
+      servo_F_init = servo_F_max;
+    }
+    if(servo_F_init < servo_F_min)
+    {
+      servo_F_init = servo_F_min;
+    }
     operatorFlag = 1;
   }
   return operatorFlag;
